@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+ 
+from imapclient import IMAPClient
+import time
+import RPi.GPIO as GPIO
+import SimpleMFRC522
+
+reader = SimpleMFRC522.SimpleMFRC522()
+
+HOSTNAME = "imap-mail.gmail.com"
+USERNAME = ""
+PASSWORD = ""
+MAILBOX = ""
+
+DEBUG = True
+
+NEWMAIL_OFFSET = 1
+MAIL_CHECK_FREQ = 60
+
+
+def loop():
+
+	global USERNAME, PASSWORD, MAILBOX, HOSTNAME
+
+	print('Please tap your card.')
+        id, text = reader.read()
+	print(id)
+	if id == 142668869250:		
+		USERNAME = USERNAME +  "matthewwbuckwell@gmail.com"
+		PASSWORD = PASSWORD + "shatxyajdcfminry"
+		MAILBOX = MAILBOX + "Inbox"
+#	else:#		USERNAME = "mcarcticman@hotmail.com"
+		PASSWORD = "dvgboxauienynafl"
+		MAILBOX = "Inbox"
+
+	print(USERNAME)	
+
+	time.sleep(2)
+
+	server = IMAPClient(HOSTNAME, use_uid=True, ssl=True)
+        server.login(USERNAME, PASSWORD)
+
+        if DEBUG:
+                print('Logging in as ' + USERNAME)
+                select_info = server.select_folder(MAILBOX)
+                print('%d messages in INBOX' % select_info['EXISTS'])
+
+        folder_status = server.folder_status(MAILBOX, 'UNSEEN')
+        newmails = int(folder_status['UNSEEN'])
+
+        if DEBUG:
+                print "You have", newmails, "new emails!"
+
+        if newmails > NEWMAIL_OFFSET:
+                pass
+        else:
+                pass
+
+        time.sleep(MAIL_CHECK_FREQ)
+
+	
+
+if __name__ == '__main__':
+        try:
+                print 'Press Ctrl-C to quit.'
+                while True:
+                       loop()
+        finally:
+                GPIO.cleanup()
